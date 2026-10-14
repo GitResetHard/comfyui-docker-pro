@@ -9,12 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Compose syntax
-        run: docker compose --env-file .env.example config -q
+      - name: Reject legacy Compose filename
+        run: test ! -e compose.yaml
+      - name: Compose validation
+        run: docker compose --env-file .env.example -f docker-compose.yml config --quiet
       - name: Bash syntax
         run: bash -n scripts/entrypoint.sh
-      - name: Dockerfile checks
+      - name: Assert startup dependencies
         run: |
           test "$(grep -c '^CMD ' Dockerfile)" -eq 1
           grep -q -- '--enable-manager' Dockerfile
           grep -q -- 'manager_requirements.txt' Dockerfile
+          grep -q -- 'docker-compose.yml' README.md
