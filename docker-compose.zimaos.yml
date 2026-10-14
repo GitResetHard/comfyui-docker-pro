@@ -31,15 +31,6 @@ services:
     shm_size: 1gb
     pids_limit: 1024
     mem_limit: 12g
-    cap_drop:
-      - ALL
-    cap_add:
-      - CHOWN
-      - DAC_OVERRIDE
-      - SETUID
-      - SETGID
-    security_opt:
-      - no-new-privileges:true
     logging:
       driver: json-file
       options:
