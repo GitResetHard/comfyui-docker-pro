@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.2](https://github.com/GitResetHard/comfyui-docker-pro/compare/v1.0.1...v1.0.2) (2026-10-14)
+
+
+### Bug Fixes
+
+* allow gosu to drop root privileges at startup ([b3bf70b](https://github.com/GitResetHard/comfyui-docker-pro/commit/b3bf70b401b0de120c30b806e10470dcf2fa49d8))
+* allow gosu to drop root privileges at startup ([3f42956](https://github.com/GitResetHard/comfyui-docker-pro/commit/3f42956641668a4775e2ceb91839039a3e09faa8))
+
 ## [1.0.1](https://github.com/GitResetHard/comfyui-docker-pro/compare/v1.0.0...v1.0.1) (2026-10-14)
 
 
