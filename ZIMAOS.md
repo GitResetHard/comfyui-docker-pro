@@ -1,39 +1,54 @@
 # ComfyUI Docker Pro — ZimaOS
 
-Install ComfyUI on ZimaOS.
-
 ## Install
 
-1. Open the ZimaOS dashboard and choose **Install a customized app**.
-2. Open the Compose import/editor option.
-3. Paste the contents of [docker-compose.zimaos.yml](docker-compose.zimaos.yml).
-4. Review the NVIDIA GPU configuration, port `8188`, and storage path `/DATA/AppData/comfyui`.
-5. Install the app, then open ComfyUI from its ZimaOS app tile.
+1. In ZimaOS, select **Install a customized app** and import [docker-compose.zimaos.yml](docker-compose.zimaos.yml).
+2. Switch from **YAML** to **Form** to review or change the app settings.
+3. Under **Basic**, check the image name and tag.
+4. Under **Networks**, keep port forwarding **8188 → 8188 (TCP)**.
+5. Under **Volumes**, keep the bind mount **/DATA/AppData/comfyui → /data**. This stores your models, custom nodes, settings and outputs.
+6. Under **Resources**, enable **NVIDIA GPU Support** and select the GPU to use. The supplied YAML selects GPU **0**.
+7. Click **Save** to install the app. Open ComfyUI using its ZimaOS app tile.
 
-The prebuilt NVIDIA image is specified directly in the ZimaOS Compose configuration. Models, custom nodes, inputs, outputs, and user data are stored at `/DATA/AppData/comfyui`.
+## Configure the app
+
+Open the app's **Edit** screen and select **Form**.
+
+| Section | Setting |
+| --- | --- |
+| Basic | Change the image tag when upgrading |
+| Networks | Configure the host and container ports |
+| Volumes | Set the persistent storage path |
+| Environment | Adjust timezone or NVIDIA environment variables |
+| Resources | Select NVIDIA GPU, CPU and memory limits |
+| Runtime | Set startup command arguments if needed |
+
+Click **Save** to apply changes. Back up `/DATA/AppData/comfyui` before upgrading. Keep the existing volume mount when editing or recreating the app.
 
 ## Optional legacy Manager UI
 
-The built-in ComfyUI Manager is enabled by default. The legacy Manager interface is optional.
+ComfyUI Manager is enabled by default. To enable its legacy interface:
 
-1. Open the ComfyUI custom app's **Compose/YAML editor** in ZimaOS.
-2. Find the `command:` section.
-3. Change the final line from `# - --enable-manager-legacy-ui` to `- --enable-manager-legacy-ui`.
-4. Save and apply the changes in the ZimaOS interface.
+1. Open **Edit → Form → Advanced → Runtime**.
+2. In **Command**, enter the following arguments, **one item per line**:
 
-The final command arguments should look like:
-
-```yaml
-      - --base-directory
-      - /data
-      - --enable-manager
-      - --enable-manager-legacy-ui
+```text
+python
+main.py
+--listen
+0.0.0.0
+--port
+8188
+--base-directory
+/data
+--enable-manager
+--enable-manager-legacy-ui
 ```
 
-To return to the default Manager UI, comment out the last line and apply the configuration again.
+3. Leave **Entrypoint** empty and click **Save**.
 
-If the installed app does not offer a Compose editor, use the ZimaOS custom-app import/edit interface to apply the revised configuration. Keep the existing `/DATA/AppData/comfyui` storage mapping.
+The Command field replaces the image's default command, so all arguments above are required. To return to the standard Manager, clear the **Command** field and save.
 
 ## Storage and updates
 
-The app's persistent storage is mapped to `/DATA/AppData/comfyui`. Keep that mapping when updating or recreating the app. The image version is selected by the `image:` line in the ZimaOS Compose editor. Back up your persistent data before upgrading.
+The app stores data at `/DATA/AppData/comfyui`. In **Edit → Form → Basic**, change the image **Tag** to an available published version when upgrading. Keep the same bind mount and GPU selection.
