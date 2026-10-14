@@ -1,11 +1,18 @@
 name: Build and publish NVIDIA image
 on:
   push:
+    branches: [main]
     tags: ['v*']
   workflow_dispatch:
+
 permissions:
   contents: read
   packages: write
+
+concurrency:
+  group: image-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   docker:
     runs-on: ubuntu-latest
@@ -22,7 +29,20 @@ jobs:
         with:
           images: ghcr.io/${{ github.repository }}
           tags: |
+            type=raw,value=edge,enable=${{ github.ref == 'refs/heads/main' }}
             type=ref,event=tag
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          push: false
+          tags: comfyui-smoke:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Startup and dependency smoke test (CPU runner)
+        run: |
+          docker run --rm --entrypoint python comfyui-smoke:ci main.py --help > /dev/null
+          docker run --rm --entrypoint python comfyui-smoke:ci -m pip check
       - uses: docker/build-push-action@v6
         with:
           context: .
