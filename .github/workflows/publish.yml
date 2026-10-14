@@ -57,13 +57,18 @@ jobs:
         run: |
           docker run --rm --entrypoint python comfyui-smoke:ci main.py --help > /dev/null
           docker run --rm --entrypoint python comfyui-smoke:ci -m pip check
+      - name: Normalize GHCR image name
+        id: image
+        shell: bash
+        run: |
+          echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
       - name: Publish versioned Docker image
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           platforms: linux/amd64
-          tags: ghcr.io/${{ github.repository }}:${{ needs.release.outputs.tag }}
+          tags: ${{ steps.image.outputs.name }}:${{ needs.release.outputs.tag }}
           labels: |
             org.opencontainers.image.version=${{ needs.release.outputs.tag }}
             org.opencontainers.image.source=https://github.com/${{ github.repository }}
