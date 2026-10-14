@@ -1,34 +1,20 @@
-name: comfyui
-
 services:
   comfyui:
     image: ghcr.io/gitresethard/comfyui-docker-pro:v1.0.2
     container_name: comfyui
-    hostname: comfyui
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
     restart: unless-stopped
-    # To enable the legacy Manager UI, uncomment the final command argument below
-    # in the ZimaOS custom app YAML editor. No .env file is needed.
-    command:
-      - python
-      - main.py
-      - --listen
-      - 0.0.0.0
-      - --port
-      - "8188"
-      - --base-directory
-      - /data
-      - --enable-manager
-      # - --enable-manager-legacy-ui
     stop_grace_period: 90s
-    runtime: nvidia
     deploy:
       resources:
         reservations:
           devices:
-            - driver: nvidia
-              count: all
-              capabilities:
+            - capabilities:
                 - gpu
+              device_ids:
+                - "0"
     ports:
       - "8188:8188"
     environment:
@@ -43,7 +29,6 @@ services:
           create_host_path: true
     shm_size: 1gb
     pids_limit: 1024
-    mem_limit: 12g
     logging:
       driver: json-file
       options:
