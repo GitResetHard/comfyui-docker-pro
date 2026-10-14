@@ -1,26 +1,27 @@
-# ZimaOS — ComfyUI Docker Pro
+# ComfyUI Docker Pro — ZimaOS
 
-This guide is for **ZimaOS users working entirely in the web interface**. No terminal commands or `.env` files are required.
+Install and configure ComfyUI entirely through the **ZimaOS web interface**.
 
-## Install using the ZimaOS GUI
+## Install
 
-1. Open your ZimaOS dashboard.
-2. Choose **Install a customized app**, then **Import** and select the Docker Compose import option.
-3. Copy the contents of [docker-compose.zimaos.yml](docker-compose.zimaos.yml) into the importer.
-4. Review the GPU, port `8188`, and persistent bind mount `/DATA/AppData/comfyui`, then install the app.
+1. Open the ZimaOS dashboard and choose **Install a customized app**.
+2. Open the Compose import/editor option.
+3. Paste the contents of [docker-compose.zimaos.yml](docker-compose.zimaos.yml).
+4. Review the NVIDIA GPU configuration, port `8188`, and storage path `/DATA/AppData/comfyui`.
+5. Install the app, then open ComfyUI from its ZimaOS app tile.
 
-The manifest uses a prebuilt NVIDIA image and preserves models and other ComfyUI data in `/DATA/AppData/comfyui`.
+The prebuilt NVIDIA image is specified directly in the ZimaOS Compose configuration. Models, custom nodes, inputs, outputs, and user data are stored at `/DATA/AppData/comfyui`.
 
-## Optional legacy ComfyUI Manager interface
+## Optional legacy Manager UI
 
-The built-in Manager is already enabled. To additionally enable the **legacy Manager web UI**:
+The built-in ComfyUI Manager is enabled by default. The legacy Manager interface is optional.
 
-1. In ZimaOS, open the custom app's settings and its Compose/YAML editor.
-2. Find the `command:` section in the `comfyui` service.
-3. Uncomment the last line by removing the `#` before `- --enable-manager-legacy-ui`.
-4. Save/apply the configuration so ZimaOS recreates the container.
+1. Open the ComfyUI custom app's **Compose/YAML editor** in ZimaOS.
+2. Find the `command:` section.
+3. Change the final line from `# - --enable-manager-legacy-ui` to `- --enable-manager-legacy-ui`.
+4. Save and apply the changes in the ZimaOS interface.
 
-The command ends like this when enabled:
+The final command arguments should look like:
 
 ```yaml
       - --base-directory
@@ -29,10 +30,10 @@ The command ends like this when enabled:
       - --enable-manager-legacy-ui
 ```
 
-To disable it, comment out the last line again. **No environment variables, `.env` file, or terminal are involved.**
+To return to the default Manager UI, comment out the last line and apply the configuration again.
 
-If your ZimaOS version does not expose a Compose editor for the installed app, use its custom-app import/edit workflow to apply the updated YAML. Preserve the same `/DATA/AppData/comfyui` mount so your data stays in place.
+If the installed app does not offer a Compose editor, use the ZimaOS custom-app import/edit interface to apply the revised configuration. Keep the existing `/DATA/AppData/comfyui` storage mapping.
 
-## Standard Docker Compose
+## Storage and updates
 
-For non-ZimaOS installation, see [README.md](README.md). That workflow uses a separate `.env` file and is not part of the ZimaOS instructions.
+The app's persistent storage is mapped to `/DATA/AppData/comfyui`. Keep that mapping when updating or recreating the app. The image version is selected by the `image:` line in the ZimaOS Compose editor. Back up your persistent data before upgrading.
