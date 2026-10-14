@@ -20,11 +20,11 @@ The web interface listens at `http://127.0.0.1:8188` by default. Set `COMFY_BIND
 - [docker-compose.yml](docker-compose.yml) — standard Docker Compose, local image build and persistent named volume.
 - [docker-compose.zimaos.yml](docker-compose.zimaos.yml) — ZimaOS custom-app manifest, image-based deployment, NVIDIA GPU and persistent data under `/DATA/AppData/comfyui`.
 
-## Build, images and versions
+## Images and releases
 
-The Dockerfile installs ComfyUI from its upstream repository, with upstream `requirements.txt`, `manager_requirements.txt`, Git, FFmpeg and basic runtime libraries. The default container command enables Manager and listens on port 8188. For repeatable builds, set `COMFY_REF` in `.env` to a tested upstream tag or commit rather than `master`.
+Prebuilt NVIDIA images are available from [GitHub Releases](https://github.com/GitResetHard/comfyui-docker-pro/releases) and [GitHub Packages](https://github.com/users/GitResetHard/packages).
 
-On a GitHub release tag such as `v0.1.0`, CI builds and publishes an image to `ghcr.io/gitresethard/comfyui-docker-pro:v0.1.0` if the workflow succeeds. A release is not considered published until that job completes. No rolling `edge` image is required.
+The release workflow builds and tests the image, publishes a versioned GHCR package, and creates a matching GitHub release. Releases run weekly and can also be started manually by a maintainer. Builds from source are supported through the Dockerfile.
 
 ## Persistent data
 
