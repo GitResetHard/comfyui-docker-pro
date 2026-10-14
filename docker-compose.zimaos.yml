@@ -6,6 +6,19 @@ services:
     container_name: comfyui
     hostname: comfyui
     restart: unless-stopped
+    # To enable the legacy Manager UI, uncomment the final command argument below
+    # in the ZimaOS custom app YAML editor. No .env file is needed.
+    command:
+      - python
+      - main.py
+      - --listen
+      - 0.0.0.0
+      - --port
+      - "8188"
+      - --base-directory
+      - /data
+      - --enable-manager
+      # - --enable-manager-legacy-ui
     stop_grace_period: 90s
     runtime: nvidia
     deploy:
@@ -22,8 +35,6 @@ services:
       TZ: Europe/Istanbul
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: compute,utility
-      # Optional: set to --enable-manager-legacy-ui for the legacy Manager UI.
-      COMFY_EXTRA_ARGS: ${COMFY_EXTRA_ARGS:-}
     volumes:
       - type: bind
         source: /DATA/AppData/comfyui
