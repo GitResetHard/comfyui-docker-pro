@@ -2,7 +2,7 @@
 
 Docker image for [ComfyUI](https://github.com/Comfy-Org/ComfyUI) with NVIDIA GPU support and the built-in ComfyUI Manager.
 
-**ZimaOS:** [Install and configure through the ZimaOS web interface](ZIMAOS.md). No terminal setup is required.
+**ZimaOS:** [Installation guide](ZIMAOS.md).
 
 ## Docker Compose (Linux)
 
@@ -36,8 +36,6 @@ For the legacy Manager interface, set `COMFY_EXTRA_ARGS=--enable-manager-legacy-
 ## Storage and updates
 
 Models, custom nodes, inputs, outputs, and settings persist in the Docker volume `comfy-data`. Rebuilding the image does not remove the volume. Model weights are not included.
-
-ComfyUI is built from a **pinned stable release**, not the moving `master` branch. New upstream stable releases are checked daily; updates are proposed through GitHub pull requests for review rather than silently applied.
 
 Back up your data before upgrading.
 
