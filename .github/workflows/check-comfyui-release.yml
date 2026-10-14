@@ -1,0 +1,62 @@
+name: Check ComfyUI stable releases
+
+on:
+  schedule:
+    - cron: '23 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Find latest stable upstream release
+        id: upstream
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          tag="$(gh api repos/Comfy-Org/ComfyUI/releases/latest --jq '.tag_name')"
+          [[ "$tag" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "Unexpected tag: $tag"; exit 1; }
+          current="$(sed -n 's/^ARG COMFY_REF=//p' Dockerfile)"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+          if [[ "$tag" != "$current" ]]; then echo "update=true" >> "$GITHUB_OUTPUT"; fi
+      - name: Open upstream update pull request
+        if: steps.upstream.outputs.update == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.upstream.outputs.tag }}
+          CURRENT: ${{ steps.upstream.outputs.current }}
+        run: |
+          set -euo pipefail
+          branch="chore/update-comfyui-stable"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B "$branch"
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          tag = os.environ["TAG"]
+          current = os.environ["CURRENT"]
+          for name in ("Dockerfile", "docker-compose.yml", ".env.example", "README.md"):
+              path = Path(name)
+              text = path.read_text()
+              if current not in text:
+                  raise SystemExit(f"Expected {current} in {name}")
+              path.write_text(text.replace(current, tag))
+          PY
+          git add Dockerfile docker-compose.yml .env.example README.md
+          git commit -m "chore: update ComfyUI to $TAG"
+          git push --force-with-lease origin "$branch"
+          if ! gh pr list --head "$branch" --state open --json number --jq 'length' | grep -qx '1'; then
+            gh pr create --base main --head "$branch" \
+              --title "chore: update ComfyUI to $TAG" \
+              --body "Updates the pinned ComfyUI stable release from $CURRENT to $TAG. Review and test the image before merging. This PR does not automatically publish a Docker image."
+          fi
