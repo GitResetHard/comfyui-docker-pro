@@ -1,6 +1,6 @@
 # ComfyUI Docker Pro — ZimaOS
 
-Install and configure ComfyUI entirely through the **ZimaOS web interface**.
+Install ComfyUI on ZimaOS.
 
 ## Install
 
