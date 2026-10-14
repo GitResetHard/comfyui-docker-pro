@@ -1,146 +1,102 @@
 # ComfyUI Docker Pro
 
-Unofficial ComfyUI NVIDIA container based on [Comfy-Org/ComfyUI](https://github.com/Comfy-Org/ComfyUI), designed for ZimaOS and modern Docker Compose.
+Unofficial NVIDIA ComfyUI Docker image using [Comfy-Org/ComfyUI](https://github.com/Comfy-Org/ComfyUI). **Linux Docker + NVIDIA Container Toolkit** are requirements; **ZimaOS is not**.
 
-> **Status:** The previous NVIDIA CI image build completed successfully. The ZimaOS-specific Compose deployment and GPU passthrough need testing on real hardware. **Do not expose this deployment directly to the internet.** ComfyUI does not offer authentication by default.
+## Deployment files
 
-## Requirements
+| File | Audience | Persistence | Default bind |
+|---|---|---|---|
+| `docker-compose.yml` | Any NVIDIA-equipped Linux Docker host | Docker named volume `comfy-data` | `127.0.0.1:8188` |
+| `docker-compose.zimaos.yml` | ZimaOS | Host path `/DATA/AppData/comfyui` | `0.0.0.0:8188` (trusted LAN) |
 
-- ZimaOS on a Linux x86-64 host with an NVIDIA GPU and driver compatible with the CUDA runtime in the [Dockerfile](Dockerfile)
-- Docker Engine with NVIDIA Container Toolkit installed and GPU access enabled
-- Docker Compose v2 with `gpus: all` and `depends_on: condition: service_completed_successfully` support
-- Enough free disk for the large CUDA image, models, generated media, and caches
-- Adequate host RAM; default limit 12 GiB, reservation 4 GiB (adjust for your machine)
+These are **independent, complete Compose files**. Pick one. Do **not** combine them using multiple `-f` arguments.
 
-Check GPU availability on the **host** first:
-
-```bash
-nvidia-smi
-docker info --format '{{json .Runtimes}}'
-```
-
-A working host GPU does not automatically mean Docker GPU passthrough works. Once deployed, perform the container test below.
-
-## ZimaOS quick start
-
-Connect over SSH:
+## Standard Docker
 
 ```bash
 git clone https://github.com/GitResetHard/comfyui-docker-pro.git
 cd comfyui-docker-pro
 cp .env.example .env
-nano .env
-```
-
-Set `COMFY_DATA=/DATA/AppData/comfyui` (the default) if the ZimaOS AppData partition is at `/DATA`. Set `COMFY_MEM_LIMIT` and `COMFY_MEM_RESERVATION` for your physical RAM.
-
-Run:
-
-```bash
-docker compose -f docker-compose.yml up -d
-docker compose -f docker-compose.yml ps
+docker compose -f docker-compose.yml up -d --build
 docker compose -f docker-compose.yml logs -f comfyui
 ```
 
-Open `http://YOUR-ZIMAOS-IP:8188`. The default binds to all host IPv4 interfaces for use from your trusted LAN. ZimaOS custom-app importers may display a separate app tile, but this repository is deliberately standard Compose, not a CasaOS app-store manifest.
+By default, visit `http://127.0.0.1:8188` on the Docker host. To access it over a trusted LAN, set `COMFY_BIND=0.0.0.0` in `.env`. Never expose unauthenticated ComfyUI directly to the public internet.
 
-### Local build versus published image
-
-By default Compose uses `COMFY_IMAGE=ghcr.io/gitresethard/comfyui-docker-pro:edge`. The `edge` tag must exist in GHCR and be public for pulling to work. To compile the local Dockerfile yourself:
+## ZimaOS
 
 ```bash
-docker compose -f docker-compose.yml up -d --build
+git clone https://github.com/GitResetHard/comfyui-docker-pro.git
+cd comfyui-docker-pro
+cp .env.example .env
+# Optional: edit .env to change COMFY_DATA, memory limits, port or image version
+docker compose -f docker-compose.zimaos.yml up -d --build
+docker compose -f docker-compose.zimaos.yml logs -f comfyui
 ```
 
-For an immutable deployment, replace `COMFY_IMAGE` with a tested release tag or SHA256 digest instead of the moving `edge` tag.
+The ZimaOS file creates `/DATA/AppData/comfyui` if missing and initializes the expected writable directories. Set `COMFY_DATA` to the actual host filesystem path if different. Existing nested files owned by another UID may still require an administrator permission fix. Default container UID/GID is 1000.
 
-### Persistent layout
+## Images and versioning (NO automatic edge tag)
 
-Everything is stored under the existing `COMFY_DATA` directory:
+Both Compose files default to `COMFY_IMAGE=comfyui-docker-pro:local`, built from the checked-out Dockerfile when running `up -d --build`. No GHCR download or moving `edge` tag is required.
 
-| Host | Inside container |
-| --- | --- |
-| `/DATA/AppData/comfyui/models` | `/data/models` |
-| `/DATA/AppData/comfyui/custom_nodes` | `/data/custom_nodes` |
-| `/DATA/AppData/comfyui/input` | `/data/input` |
-| `/DATA/AppData/comfyui/output` | `/data/output` |
-| `/DATA/AppData/comfyui/user` | `/data/user` |
-| `/DATA/AppData/comfyui/cache` | `/data/cache` |
-
-The **init-data** service creates the top-level directory and standard writable subdirectories, assigning those directory owners to container UID/GID 1000. It intentionally does **not** recursively chown existing model files. Existing files and nested folders with different permissions may need a one-time administrator fix. Data survives container recreation and host reboot.
-
-Models are *not* bundled. Drop `.safetensors` checkpoints into `models/checkpoints`, LoRAs into `models/loras`, and other weights into their corresponding model directories.
-
-### Environment variables
-
-Copy `.env.example` to `.env` and edit values:
-
-| Variable | Default | Meaning |
-| --- | --- | --- |
-| `COMFY_DATA` | `/DATA/AppData/comfyui` | Persistent host bind-mount root |
-| `COMFY_IMAGE` | `ghcr.io/gitresethard/comfyui-docker-pro:edge` | Published image name/tag or local build output |
-| `COMFY_REF` | `master` | Upstream ComfyUI ref for local builds (pin a tested commit in production) |
-| `COMFY_BIND` | `0.0.0.0` | Host listen address; set to `127.0.0.1` when using local reverse proxy |
-| `COMFY_PORT` | `8188` | Host port |
-| `TZ` | `Europe/Istanbul` | Container timezone |
-| `COMFY_MEM_LIMIT` | `12g` | Host RAM ceiling, not GPU VRAM |
-| `COMFY_MEM_RESERVATION` | `4g` | Soft RAM reservation |
-| `COMFY_SHM_SIZE` | `1gb` | Shared-memory size |
-| `COMFY_PIDS_LIMIT` | `1024` | PID limit |
-| `COMFY_EXTRA_ARGS` | empty | Optional ComfyUI CLI arguments, separated by whitespace |
-| `COMFY_LOG_MAX_SIZE` | `20m` | Max size per log file |
-| `COMFY_LOG_MAX_FILES` | `5` | Rotated log files to retain |
-
-The image sets `--listen 0.0.0.0 --port 8188 --base-directory /data --enable-manager` by default. `COMFY_EXTRA_ARGS` is split on whitespace; do not use shell quoting or shell expressions.
-
-### Check GPU, health and permissions
+Once a versioned image has **actually been published**, set for example `COMFY_IMAGE=ghcr.io/gitresethard/comfyui-docker-pro:v0.1.0`, then run:
 
 ```bash
+docker compose -f docker-compose.yml pull comfyui
+docker compose -f docker-compose.yml up -d --no-build
+```
+
+For ZimaOS, replace `docker-compose.yml` with `docker-compose.zimaos.yml`. Prefer an immutable digest for strict repeatability. GitHub Actions only publishes explicit `v*` tags and optionally manual release workflows—not an automatic `edge` tag.
+
+`COMFY_REF=master` is convenient for development builds but tracks upstream. Pin `COMFY_REF` to a tested commit/tag when building a versioned image.
+
+## What is installed
+
+The Dockerfile clones official ComfyUI and installs its `requirements.txt` and `manager_requirements.txt`, FFmpeg, Git, Git LFS and common system libraries. `--enable-manager` is enabled by default.
+
+There is no conflict-free way to preinstall **all** community custom node requirements. Some require incompatible Torch/CUDA/Python versions or additional model downloads. Nodes added through Manager persist as source under `/data/custom_nodes`, but Python packages installed in a running container can be lost on recreation. Reproducible extensions should be installed in a derived/pinned image.
+
+Models are not bundled. Place weights under `/data/models/checkpoints` (or other appropriate `/data/models/*` directories). Outputs, inputs, user settings and caches also persist under `/data`.
+
+## Configuration
+
+Copy `.env.example` to `.env`. Configuration includes `COMFY_IMAGE`, `COMFY_REF`, `COMFY_BIND`, `COMFY_PORT`, `COMFY_DATA` (ZimaOS only), `TZ`, `COMFY_EXTRA_ARGS`, `COMFY_MEM_LIMIT`, `COMFY_MEM_RESERVATION`, `COMFY_SHM_SIZE`, `COMFY_PIDS_LIMIT`, and log rotation limits. RAM settings do not allocate or limit VRAM. `COMFY_EXTRA_ARGS` supports simple whitespace-separated flags without shell interpolation.
+
+## Verify
+
+```bash
+# Choose one filename, according to the host:
 docker compose -f docker-compose.yml config --quiet
 docker compose -f docker-compose.yml ps
-docker compose -f docker-compose.yml logs --tail=150 comfyui
-docker compose -f docker-compose.yml exec comfyui python -c 'import torch; print("CUDA:", torch.cuda.is_available()); print("GPU:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "unavailable")'
 docker compose -f docker-compose.yml exec comfyui python -m pip check
-docker compose -f docker-compose.yml exec comfyui sh -c 'id && test -w /data/output && test -w /data/custom_nodes && echo "storage writable"'
+docker compose -f docker-compose.yml exec comfyui python -c 'import torch; print("CUDA:", torch.cuda.is_available()); print("GPU:", torch.cuda.get_device_name(0) if torch.cuda.is_available() else "unavailable")'
+docker compose -f docker-compose.yml exec comfyui sh -c 'id; test -w /data/output && echo writable'
 ```
 
-The GPU command must report `CUDA: True` and your NVIDIA card. Finally, load a model and run an actual generation workflow. CI on a GitHub-hosted CPU runner is **not** proof of GPU inference.
+Use `docker-compose.zimaos.yml` instead on ZimaOS. GPU output should show `CUDA: True`. Finally run a real model inference. A CPU GitHub Actions runner cannot verify your NVIDIA hardware.
 
-### Custom nodes and dependency policy
-
-The image installs ComfyUI's upstream `requirements.txt` and `manager_requirements.txt`, plus Git, Git LFS, FFmpeg and common system libraries. It does **not** preinstall every node from the community: many nodes require mutually incompatible Torch/CUDA/Python versions or downloads of additional proprietary weights. Install nodes via ComfyUI-Manager and read each node's compatibility instructions.
-
-Custom node **source directories** persist in `/data/custom_nodes`. Python packages installed interactively inside a container can be lost when it is replaced. For reproducible deployments, extend the image in a derived Dockerfile and pin the node dependency versions, then rebuild. Avoid indiscriminate `pip install -U` against the running environment.
-
-### Updates, restart and backup
+## Operations
 
 ```bash
-git pull --ff-only
+docker compose -f docker-compose.yml logs --tail=100 comfyui
 docker compose -f docker-compose.yml pull
-docker compose -f docker-compose.yml up -d
-docker compose -f docker-compose.yml ps
+docker compose -f docker-compose.yml up -d --no-build
 ```
 
-For locally built images, use `docker compose -f docker-compose.yml up -d --build`. Backup `COMFY_DATA` before updating. Image upgrades may change ComfyUI internals, torch or node APIs; pin known-good image tags rather than blindly upgrading in production.
+With local builds, use `up -d --build` instead. Back up `/data` before upgrades: for standard Docker, back up the named volume; for ZimaOS back up the host directory configured with `COMFY_DATA`. `restart: unless-stopped` restarts the app after Docker reboots unless manually stopped. A failing health check alone does not restart a container.
 
-`restart: unless-stopped` restarts the app after Docker and host reboot unless you manually stop it. The one-shot initializer has `restart: "no"` and must complete successfully before ComfyUI starts. The health check reports unhealthy state; Docker Compose **does not automatically restart containers solely because they are unhealthy**.
+## Troubleshooting and security
 
-### Troubleshooting
+- **GPU unavailable:** confirm host `nvidia-smi` and the NVIDIA Container Toolkit's Docker integration; `gpus: all` alone does not install drivers.
+- **Permission denied:** inspect `docker compose -f <selected-file> logs init-data comfyui`; ensure nested bind-mounted files are writable by UID 1000.
+- **Out of memory:** adjust host RAM limits or use smaller workflows; `COMFY_EXTRA_ARGS=--lowvram` can help limited GPUs.
+- **Port conflict:** change `COMFY_PORT`.
+- **Package conflict:** pin compatible node requirements in your derived image; avoid blanket upgrades.
+- **Remote access:** restrict to trusted networks or authenticated TLS reverse proxy. Custom nodes are executable third-party code.
 
-- **Container won't start / permission denied:** `docker compose -f docker-compose.yml logs init-data comfyui`. Check `ls -ld /DATA/AppData/comfyui` and nested directories. UID 1000 needs write access.
-- **GPU not available:** inspect `nvidia-smi`, `docker info` and Docker GPU integration on ZimaOS; the Compose request alone cannot install drivers or the container toolkit.
-- **CUDA out of memory:** use a smaller model, lower resolution, or `COMFY_EXTRA_ARGS=--lowvram`.
-- **Host out of memory / exit 137:** raise `COMFY_MEM_LIMIT` if RAM allows, or reduce workload.
-- **Manager package conflicts:** review the failing node's requirements; derive a dedicated image instead of modifying the base unpredictably.
-- **GHCR package inaccessible:** verify the image was published and made public, or use `--build`.
-- **Port in use:** change `COMFY_PORT`.
+## Verification status
 
-### Security and maintenance
+The initial NVIDIA Docker image build and Python smoke tests passed in GitHub Actions. The two updated Compose configurations are validated in CI separately. Actual GPU execution, custom-node functionality, persistency and reboot behavior require tests on your host.
 
-ComfyUI custom nodes are executable code; only install sources you trust. The container drops Linux capabilities, uses `no-new-privileges`, a non-root application process, a private bridge network, and bounded logs. The initializer temporarily runs as root with only the capabilities needed to create and chown the data directories. No passwords are embedded; secure external access needs an authenticated reverse proxy plus TLS and preferably network access restrictions. Monitor disk growth under `output` and `cache`.
-
-## CI and release status
-
-GitHub Actions validates the Compose file, Bash syntax and startup contract, and builds the NVIDIA image. A CPU-only startup/dependency smoke test runs before publication. Real ZimaOS NVIDIA integration, custom-node compatibility and heavy model generation remain hardware acceptance checks.
-
-See [LICENSE-NOTICE.md](LICENSE-NOTICE.md). This project is unofficial and not affiliated with Comfy-Org.
+See [LICENSE-NOTICE.md](LICENSE-NOTICE.md). Not affiliated with Comfy-Org.
