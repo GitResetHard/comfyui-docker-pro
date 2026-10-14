@@ -9,15 +9,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Reject legacy Compose filename
-        run: test ! -e compose.yaml
-      - name: Compose validation
-        run: docker compose --env-file .env.example -f docker-compose.yml config --quiet
+      - name: Compose validation (both standalone files)
+        run: |
+          test ! -e compose.yaml
+          docker compose --env-file .env.example -f docker-compose.yml config --quiet
+          docker compose --env-file .env.example -f docker-compose.zimaos.yml config --quiet
       - name: Bash syntax
         run: bash -n scripts/entrypoint.sh
-      - name: Assert startup dependencies
+      - name: Check startup and documentation
         run: |
           test "$(grep -c '^CMD ' Dockerfile)" -eq 1
           grep -q -- '--enable-manager' Dockerfile
           grep -q -- 'manager_requirements.txt' Dockerfile
-          grep -q -- 'docker-compose.yml' README.md
+          grep -q 'docker-compose.zimaos.yml' README.md
+          ! grep -q ':edge' .env.example
