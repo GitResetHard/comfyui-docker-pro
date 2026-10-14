@@ -75,5 +75,4 @@ jobs:
           gh release create "$RELEASE_TAG" \
             --target "$GITHUB_SHA" \
             --title "ComfyUI Docker Pro $RELEASE_TAG" \
-            --generate-notes \
-            --verify-tag=false
+            --generate-notes
