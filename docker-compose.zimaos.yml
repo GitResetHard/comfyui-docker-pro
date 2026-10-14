@@ -7,7 +7,15 @@ services:
     hostname: comfyui
     restart: unless-stopped
     stop_grace_period: 90s
-    gpus: all
+    runtime: nvidia
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities:
+                - gpu
     ports:
       - "8188:8188"
     environment:
