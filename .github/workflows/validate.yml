@@ -13,7 +13,7 @@ jobs:
         run: |
           test ! -e compose.yaml
           docker compose --env-file .env.example -f docker-compose.yml config --quiet
-          docker compose --env-file .env.example -f docker-compose.zimaos.yml config --quiet
+          docker compose -f docker-compose.zimaos.yml config --quiet
       - name: Bash syntax
         run: bash -n scripts/entrypoint.sh
       - name: Check startup and documentation
@@ -21,5 +21,7 @@ jobs:
           test "$(grep -c '^CMD ' Dockerfile)" -eq 1
           grep -q -- '--enable-manager' Dockerfile
           grep -q -- 'manager_requirements.txt' Dockerfile
-          grep -q 'docker-compose.zimaos.yml' README.md
+          grep -q 'ZIMAOS.md' README.md
+          test -f ZIMAOS.md
+          grep -q 'docker-compose.zimaos.yml' ZIMAOS.md
           ! grep -q ':edge' .env.example
