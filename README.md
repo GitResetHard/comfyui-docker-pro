@@ -20,8 +20,6 @@ The web interface listens at `http://127.0.0.1:8188` by default. Set `COMFY_BIND
 - [docker-compose.yml](docker-compose.yml) — standard Docker Compose, local image build and persistent named volume.
 - [docker-compose.zimaos.yml](docker-compose.zimaos.yml) — ZimaOS custom-app manifest, image-based deployment, NVIDIA GPU and persistent data under `/DATA/AppData/comfyui`.
 
-The ZimaOS manifest requires a published image tag. Its `v0.1.0` reference is a **planned version**, not a confirmed published package. Change it to an existing versioned GHCR tag before installation if that version has not been released. This repository does not require ZimaOS.
-
 ## Build, images and versions
 
 The Dockerfile installs ComfyUI from its upstream repository, with upstream `requirements.txt`, `manager_requirements.txt`, Git, FFmpeg and basic runtime libraries. The default container command enables Manager and listens on port 8188. For repeatable builds, set `COMFY_REF` in `.env` to a tested upstream tag or commit rather than `master`.
