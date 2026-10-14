@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        COMFY_REF: ${COMFY_REF:-master}
+        COMFY_REF: ${COMFY_REF:-v0.40.0}
     restart: unless-stopped
     stop_grace_period: 90s
     gpus: all
