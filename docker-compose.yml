@@ -2,12 +2,10 @@ name: comfyui
 
 services:
   comfyui:
-    image: ${COMFY_IMAGE:-comfyui-docker-pro:local}
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        COMFY_REF: ${COMFY_REF:-v0.40.0}
+    image: ghcr.io/gitresethard/comfyui-docker-pro:v1.0.2
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
     restart: unless-stopped
     stop_grace_period: 90s
     gpus: all
