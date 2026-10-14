@@ -22,12 +22,6 @@ The web interface listens at `http://127.0.0.1:8188` by default. Set `COMFY_BIND
 - [docker-compose.yml](docker-compose.yml) — standard Docker Compose, local image build and persistent named volume.
 - [ZIMAOS.md](ZIMAOS.md) — separate GUI-only ZimaOS installation and configuration guide, using [docker-compose.zimaos.yml](docker-compose.zimaos.yml).
 
-## Images and releases
-
-Versioned NVIDIA images are published to [GitHub Packages](https://github.com/users/GitResetHard/packages), with release notes under [GitHub Releases](https://github.com/GitResetHard/comfyui-docker-pro/releases).
-
-Releases follow [Conventional Commits](https://www.conventionalcommits.org/): `fix:` makes a patch release, `feat:` makes a minor release, and a breaking change makes a major release according to the pre-1.0 versioning policy. Release Please opens an automated release pull request; merging it creates the GitHub release and triggers the matching Docker image build. Documentation-only commits do not publish new images.
-
 ## Persistent data
 
 ComfyUI keeps models, custom nodes, user preferences, inputs, outputs and caches under `/data`. The image entrypoint creates directories and adjusts only required directory ownership on startup before dropping privileges to UID 1000; it does not recursively take ownership of user model files. Existing files with incompatible ACLs may require separate correction.
