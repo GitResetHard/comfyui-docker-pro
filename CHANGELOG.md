@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.0.3](https://github.com/GitResetHard/comfyui-docker-pro/compare/v1.0.2...v1.0.3) (2026-10-14)
+
+
+### Bug Fixes
+
+* restore default runtime capabilities for gosu user switch ([56705e2](https://github.com/GitResetHard/comfyui-docker-pro/commit/56705e2e1120a8f22353202511dd968ecd3cc18b))
+* restore default runtime capabilities for gosu user switch ([249a8b4](https://github.com/GitResetHard/comfyui-docker-pro/commit/249a8b4dda63d1717f73eb063e911d1a5366d19c))
+* separate ZimaOS GUI configuration from Compose environment setup ([9598f56](https://github.com/GitResetHard/comfyui-docker-pro/commit/9598f56a621091b12b3b67cb5842487102e0a57a))
+* separate ZimaOS GUI configuration from Compose environment setup ([7e94b1f](https://github.com/GitResetHard/comfyui-docker-pro/commit/7e94b1f429d24a9829588df39f95b7df958f3742))
+* separate ZimaOS GUI configuration from Compose environment setup ([09bdd9e](https://github.com/GitResetHard/comfyui-docker-pro/commit/09bdd9e4bfce60af7fae966c32a7e527900fba9b))
+* use published GHCR image in standard Compose example ([4abec44](https://github.com/GitResetHard/comfyui-docker-pro/commit/4abec442cf6967589566acccbc3887a8b8eefd6c))
+* use published GHCR image in standard Compose example ([efe1c82](https://github.com/GitResetHard/comfyui-docker-pro/commit/efe1c8260019a5671d870431046d883326b6a88e))
+* use published GHCR image in standard Compose example ([1d9f9f4](https://github.com/GitResetHard/comfyui-docker-pro/commit/1d9f9f4755f5aa73f7c1c257f00f02ef2eaa46d2))
+* **zimaos:** reference published v1.0.2 image ([e09a7f4](https://github.com/GitResetHard/comfyui-docker-pro/commit/e09a7f42ffa2197c09448e5339cf2d6d00287f8b))
+
 ## [1.0.2](https://github.com/GitResetHard/comfyui-docker-pro/compare/v1.0.1...v1.0.2) (2026-10-14)
 
 
