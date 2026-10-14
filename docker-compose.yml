@@ -1,22 +1,6 @@
 name: comfyui
+
 services:
-  init-data:
-    image: busybox:1.37
-    restart: "no"
-    user: "0:0"
-    network_mode: none
-    cap_drop: [ALL]
-    cap_add: [CHOWN, DAC_OVERRIDE]
-    security_opt:
-      - no-new-privileges:true
-    command:
-      - sh
-      - -ec
-      - |
-        mkdir -p /data/models /data/custom_nodes /data/input /data/output /data/temp /data/user /data/cache
-        chown 1000:1000 /data /data/models /data/custom_nodes /data/input /data/output /data/temp /data/user /data/cache
-    volumes:
-      - comfy-data:/data
   comfyui:
     image: ${COMFY_IMAGE:-comfyui-docker-pro:local}
     build:
@@ -24,9 +8,6 @@ services:
       dockerfile: Dockerfile
       args:
         COMFY_REF: ${COMFY_REF:-master}
-    depends_on:
-      init-data:
-        condition: service_completed_successfully
     restart: unless-stopped
     stop_grace_period: 90s
     gpus: all
@@ -43,7 +24,11 @@ services:
     pids_limit: ${COMFY_PIDS_LIMIT:-1024}
     mem_limit: ${COMFY_MEM_LIMIT:-12g}
     mem_reservation: ${COMFY_MEM_RESERVATION:-4g}
-    cap_drop: [ALL]
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - DAC_OVERRIDE
     security_opt:
       - no-new-privileges:true
     logging:
@@ -57,8 +42,6 @@ services:
       timeout: 10s
       start_period: 180s
       retries: 5
-networks:
-  default:
-    driver: bridge
+
 volumes:
   comfy-data:
