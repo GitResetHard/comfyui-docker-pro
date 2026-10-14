@@ -26,6 +26,10 @@ Versioned NVIDIA images are published to [GitHub Packages](https://github.com/us
 
 Releases follow [Conventional Commits](https://www.conventionalcommits.org/): `fix:` makes a patch release, `feat:` makes a minor release, and a breaking change makes a major release according to the pre-1.0 versioning policy. Release Please opens an automated release pull request; merging it creates the GitHub release and triggers the matching Docker image build. Documentation-only commits do not publish new images.
 
+## Optional legacy Manager UI
+
+The built-in ComfyUI Manager is enabled by default. To additionally enable its legacy web interface, set `COMFY_EXTRA_ARGS=--enable-manager-legacy-ui` in `.env` (standard Docker Compose) or set the same variable in your ZimaOS app environment. Leave it empty to use the default Manager UI. No custom startup command or dependency restoration is required for this option.
+
 ## Persistent data
 
 ComfyUI keeps models, custom nodes, user preferences, inputs, outputs and caches under `/data`. The image entrypoint creates directories and adjusts only required directory ownership on startup before dropping privileges to UID 1000; it does not recursively take ownership of user model files. Existing files with incompatible ACLs may require separate correction.
