@@ -1,30 +1,49 @@
-name: Build and publish NVIDIA image
+name: Publish NVIDIA release
+
 on:
-  push:
-    tags: ['v*']
+  schedule:
+    - cron: "0 5 * * 1"
   workflow_dispatch:
+
 permissions:
-  contents: read
+  contents: write
   packages: write
+
+concurrency:
+  group: comfyui-release
+  cancel-in-progress: false
+
 jobs:
-  docker:
+  release:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Select next patch version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --tags --force
+          latest="$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | sort -V | tail -n 1 || true)"
+          if [[ -z "$latest" ]]; then
+            version=v0.1.0
+          else
+            numbers="${latest#v}"
+            IFS=. read -r major minor patch <<< "$numbers"
+            version="v${major}.${minor}.$((patch + 1))"
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Releasing $version"
       - uses: docker/setup-buildx-action@v3
       - uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - uses: docker/metadata-action@v5
-        id: meta
-        with:
-          images: ghcr.io/${{ github.repository }}
-          tags: |
-            type=ref,event=tag
-            type=sha,format=short,enable=${{ github.event_name == 'workflow_dispatch' }}
-      - uses: docker/build-push-action@v6
+      - name: Build image for smoke test
+        uses: docker/build-push-action@v6
         with:
           context: .
           load: true
@@ -32,16 +51,29 @@ jobs:
           tags: comfyui-smoke:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: Python and dependency smoke test
+      - name: Verify CLI and Python dependencies
         run: |
           docker run --rm --entrypoint python comfyui-smoke:ci main.py --help > /dev/null
           docker run --rm --entrypoint python comfyui-smoke:ci -m pip check
-      - uses: docker/build-push-action@v6
+      - name: Publish versioned image to GHCR
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
           platforms: linux/amd64
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version }}
+          labels: |
+            org.opencontainers.image.version=${{ steps.version.outputs.version }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+      - name: Create GitHub release and tag
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_TAG: ${{ steps.version.outputs.version }}
+        run: |
+          gh release create "$RELEASE_TAG" \
+            --target "$GITHUB_SHA" \
+            --title "ComfyUI Docker Pro $RELEASE_TAG" \
+            --generate-notes \
+            --verify-tag=false
