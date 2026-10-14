@@ -22,9 +22,9 @@ The web interface listens at `http://127.0.0.1:8188` by default. Set `COMFY_BIND
 
 ## Images and releases
 
-Prebuilt NVIDIA images are available from [GitHub Releases](https://github.com/GitResetHard/comfyui-docker-pro/releases) and [GitHub Packages](https://github.com/users/GitResetHard/packages).
+Versioned NVIDIA images are published to [GitHub Packages](https://github.com/users/GitResetHard/packages), with release notes under [GitHub Releases](https://github.com/GitResetHard/comfyui-docker-pro/releases).
 
-The release workflow builds and tests the image, publishes a versioned GHCR package, and creates a matching GitHub release. Releases run weekly and can also be started manually by a maintainer. Builds from source are supported through the Dockerfile.
+Releases follow [Conventional Commits](https://www.conventionalcommits.org/): `fix:` makes a patch release, `feat:` makes a minor release, and a breaking change makes a major release according to the pre-1.0 versioning policy. Release Please opens an automated release pull request; merging it creates the GitHub release and triggers the matching Docker image build. Documentation-only commits do not publish new images.
 
 ## Persistent data
 
