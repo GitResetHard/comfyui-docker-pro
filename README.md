@@ -1,12 +1,12 @@
 # ComfyUI Docker Pro
 
-Unofficial NVIDIA container for [ComfyUI](https://github.com/Comfy-Org/ComfyUI), including the built-in Manager. Supports standard Docker Compose on Linux with NVIDIA Container Toolkit.
+Docker image for [ComfyUI](https://github.com/Comfy-Org/ComfyUI) with NVIDIA GPU support and the built-in ComfyUI Manager.
 
-For ZimaOS GUI installation and configuration, see **[ZimaOS guide](ZIMAOS.md)**. The instructions below are for standard Docker Compose only.
+**ZimaOS:** [Install and configure through the ZimaOS web interface](ZIMAOS.md). No terminal setup is required.
 
-## Installation
+## Docker Compose (Linux)
 
-Clone the repository and copy the configuration:
+Requires Docker Engine, Docker Compose, an NVIDIA GPU, and NVIDIA Container Toolkit.
 
 ```bash
 git clone https://github.com/GitResetHard/comfyui-docker-pro.git
@@ -15,38 +15,41 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-The web interface listens at `http://127.0.0.1:8188` by default. Set `COMFY_BIND` for access from other trusted hosts. Model weights are not included.
+Open **http://localhost:8188**.
 
-## Deployment options
+To access ComfyUI from another device, set `COMFY_BIND=0.0.0.0` in `.env` and rebuild/recreate the container. Only expose it on trusted networks.
 
-- [docker-compose.yml](docker-compose.yml) — standard Docker Compose, local image build and persistent named volume.
-- [ZIMAOS.md](ZIMAOS.md) — separate GUI-only ZimaOS installation and configuration guide, using [docker-compose.zimaos.yml](docker-compose.zimaos.yml).
+## Configuration
 
-## Persistent data
+Edit `.env` before running Docker Compose:
 
-ComfyUI keeps models, custom nodes, user preferences, inputs, outputs and caches under `/data`. The image entrypoint creates directories and adjusts only required directory ownership on startup before dropping privileges to UID 1000; it does not recursively take ownership of user model files. Existing files with incompatible ACLs may require separate correction.
+| Setting | Purpose |
+| --- | --- |
+| `COMFY_REF` | ComfyUI release tag used for builds (pinned to `v0.40.0` by default) |
+| `COMFY_PORT` | Web interface port (default `8188`) |
+| `COMFY_BIND` | Host interface (default `127.0.0.1`) |
+| `COMFY_MEM_LIMIT` | Container memory limit |
+| `COMFY_EXTRA_ARGS` | Optional ComfyUI startup flags |
 
-Community custom nodes are installed at your discretion through Manager. Because nodes can demand incompatible dependencies, the image does not bundle every extension. Install pinned extra Python dependencies in a derived image if they must persist across upgrades.
+For the legacy Manager interface, set `COMFY_EXTRA_ARGS=--enable-manager-legacy-ui`. The regular Manager is already enabled.
 
-## Operations
+## Storage and updates
+
+Models, custom nodes, inputs, outputs, and settings persist in the Docker volume `comfy-data`. Rebuilding the image does not remove the volume. Model weights are not included.
+
+ComfyUI is built from a **pinned stable release**, not the moving `master` branch. New upstream stable releases are checked daily; updates are proposed through GitHub pull requests for review rather than silently applied.
+
+Back up your data before upgrading.
+
+## Troubleshooting
 
 ```bash
-docker compose ps
 docker compose logs -f comfyui
-docker compose exec comfyui python -m pip check
-docker compose exec comfyui python -c 'import torch; print(torch.cuda.is_available())'
+docker compose ps
 ```
 
-The final check should return `True` with working NVIDIA passthrough. Back up your persistent data before upgrading. Use `docker compose up -d --build` to rebuild the local image. For a prebuilt versioned image, configure `COMFY_IMAGE` and pull that specific tag.
+If GPU acceleration is unavailable, verify the NVIDIA driver and NVIDIA Container Toolkit on the host.
 
-## Environment
+ComfyUI does not include authentication by default. Do not expose port `8188` directly to the public internet.
 
-See [.env.example](.env.example) for image/build ref, host binding, port, timezone, RAM and shared-memory limits, additional flags and log rotation. ZimaOS uses its own YAML settings; see [ZIMAOS.md](ZIMAOS.md).
-
-## Security and compatibility
-
-Keep ComfyUI behind a trusted network or authenticated reverse proxy; it does not provide default authentication. Custom nodes execute third-party code. Containers request an NVIDIA GPU, use rotating logs and a health check, and drop most Linux capabilities. ComfyUI starts without root privileges following storage initialization.
-
-GitHub CI validates Compose syntax and builds the image. CUDA access, successful inference, host permission behavior and reboot recovery must still be checked on the target hardware.
-
-See [LICENSE-NOTICE.md](LICENSE-NOTICE.md).
+[ZimaOS guide](ZIMAOS.md) · [License notices](LICENSE-NOTICE.md)
