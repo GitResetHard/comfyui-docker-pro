@@ -31,7 +31,6 @@ services:
     shm_size: 1gb
     pids_limit: 1024
     mem_limit: 12g
-    mem_reservation: 4g
     cap_drop:
       - ALL
     cap_add:
