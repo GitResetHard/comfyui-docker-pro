@@ -1,5 +1,4 @@
 name: comfyui
-
 services:
   init-data:
     image: busybox:1.37
@@ -14,71 +13,52 @@ services:
       - sh
       - -ec
       - |
-        mkdir -p /data /data/models /data/custom_nodes /data/input /data/output /data/temp /data/user /data/cache
+        mkdir -p /data/models /data/custom_nodes /data/input /data/output /data/temp /data/user /data/cache
         chown 1000:1000 /data /data/models /data/custom_nodes /data/input /data/output /data/temp /data/user /data/cache
     volumes:
-      - type: bind
-        source: ${COMFY_DATA:-/DATA/AppData/comfyui}
-        target: /data
-        bind:
-          create_host_path: true
-
+      - comfy-data:/data
   comfyui:
-    depends_on:
-      init-data:
-        condition: service_completed_successfully
-    image: ${COMFY_IMAGE:-ghcr.io/gitresethard/comfyui-docker-pro:edge}
+    image: ${COMFY_IMAGE:-comfyui-docker-pro:local}
     build:
       context: .
       dockerfile: Dockerfile
       args:
         COMFY_REF: ${COMFY_REF:-master}
+    depends_on:
+      init-data:
+        condition: service_completed_successfully
     restart: unless-stopped
     stop_grace_period: 90s
     gpus: all
     ports:
-      - "${COMFY_BIND:-0.0.0.0}:${COMFY_PORT:-8188}:8188"
+      - "${COMFY_BIND:-127.0.0.1}:${COMFY_PORT:-8188}:8188"
     environment:
-      TZ: ${TZ:-Europe/Istanbul}
+      TZ: ${TZ:-UTC}
       NVIDIA_VISIBLE_DEVICES: all
       NVIDIA_DRIVER_CAPABILITIES: compute,utility
-      PYTHONUNBUFFERED: "1"
-      HF_HUB_DISABLE_TELEMETRY: "1"
-      # Extra startup options are passed through entrypoint using COMFY_EXTRA_ARGS.
       COMFY_EXTRA_ARGS: ${COMFY_EXTRA_ARGS:-}
     volumes:
-      # All model weights, custom nodes, workflows, inputs, user config and outputs.
-      - type: bind
-        source: ${COMFY_DATA:-/DATA/AppData/comfyui}
-        target: /data
-        bind:
-          create_host_path: false
+      - comfy-data:/data
     shm_size: ${COMFY_SHM_SIZE:-1gb}
     pids_limit: ${COMFY_PIDS_LIMIT:-1024}
     mem_limit: ${COMFY_MEM_LIMIT:-12g}
     mem_reservation: ${COMFY_MEM_RESERVATION:-4g}
+    cap_drop: [ALL]
     security_opt:
       - no-new-privileges:true
-    cap_drop:
-      - ALL
     logging:
       driver: json-file
       options:
         max-size: "${COMFY_LOG_MAX_SIZE:-20m}"
         max-file: "${COMFY_LOG_MAX_FILES:-5}"
     healthcheck:
-      test:
-        - CMD
-        - python
-        - -c
-        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8188/system_stats', timeout=8)"
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8188/system_stats', timeout=8)"]
       interval: 30s
       timeout: 10s
       start_period: 180s
       retries: 5
-    networks:
-      - comfyui
-
 networks:
-  comfyui:
+  default:
     driver: bridge
+volumes:
+  comfy-data:
