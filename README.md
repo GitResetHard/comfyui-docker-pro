@@ -11,33 +11,31 @@ Requires Docker Engine, Docker Compose, an NVIDIA GPU, and NVIDIA Container Tool
 ```bash
 git clone https://github.com/GitResetHard/comfyui-docker-pro.git
 cd comfyui-docker-pro
-cp .env.example .env
-docker compose up -d --build
+docker compose up -d
 ```
 
 Open **http://localhost:8188**.
 
-To access ComfyUI from another device, set `COMFY_BIND=0.0.0.0` in `.env` and rebuild/recreate the container. Only expose it on trusted networks.
+To access ComfyUI from another device, change the host binding in `docker-compose.yml` to `0.0.0.0` and recreate the container. Only expose it on trusted networks.
 
 ## Configuration
 
-Edit `.env` before running Docker Compose:
+Optional settings can be changed in `docker-compose.yml` or supplied through a `.env` file:
 
 | Setting | Purpose |
 | --- | --- |
-| `COMFY_REF` | ComfyUI release tag used for builds (pinned to `v0.40.0` by default) |
 | `COMFY_PORT` | Web interface port (default `8188`) |
 | `COMFY_BIND` | Host interface (default `127.0.0.1`) |
 | `COMFY_MEM_LIMIT` | Container memory limit |
 | `COMFY_EXTRA_ARGS` | Optional ComfyUI startup flags |
 
-For the legacy Manager interface, set `COMFY_EXTRA_ARGS=--enable-manager-legacy-ui`. The regular Manager is already enabled.
+For the legacy Manager interface, set `COMFY_EXTRA_ARGS=--enable-manager-legacy-ui` in `.env` or as a Compose environment variable. The regular Manager is already enabled.
 
 ## Storage and updates
 
-Models, custom nodes, inputs, outputs, and settings persist in the Docker volume `comfy-data`. Rebuilding the image does not remove the volume. Model weights are not included.
+Models, custom nodes, inputs, outputs, and settings persist in the Docker volume `comfy-data`. Recreating the container does not remove the volume. Model weights are not included.
 
-Back up your data before upgrading.
+To upgrade, change the image tag in `docker-compose.yml`, then run `docker compose pull && docker compose up -d`. Back up your data before upgrading.
 
 ## Troubleshooting
 
