@@ -1,14 +1,38 @@
 name: comfyui
 
 services:
+  init-data:
+    image: busybox:1.37
+    restart: "no"
+    user: "0:0"
+    network_mode: none
+    cap_drop: [ALL]
+    cap_add: [CHOWN, DAC_OVERRIDE]
+    security_opt:
+      - no-new-privileges:true
+    command:
+      - sh
+      - -ec
+      - |
+        mkdir -p /data /data/models /data/custom_nodes /data/input /data/output /data/temp /data/user /data/cache
+        chown 1000:1000 /data /data/models /data/custom_nodes /data/input /data/output /data/temp /data/user /data/cache
+    volumes:
+      - type: bind
+        source: ${COMFY_DATA:-/DATA/AppData/comfyui}
+        target: /data
+        bind:
+          create_host_path: true
+
   comfyui:
+    depends_on:
+      init-data:
+        condition: service_completed_successfully
     image: ${COMFY_IMAGE:-ghcr.io/gitresethard/comfyui-docker-pro:edge}
     build:
       context: .
       dockerfile: Dockerfile
       args:
         COMFY_REF: ${COMFY_REF:-master}
-    init: false # tini is already the image ENTRYPOINT
     restart: unless-stopped
     stop_grace_period: 90s
     gpus: all
@@ -37,7 +61,6 @@ services:
       - no-new-privileges:true
     cap_drop:
       - ALL
-    read_only: false # Manager installs nodes and packages; /opt/ComfyUI remains writable by UID 1000
     logging:
       driver: json-file
       options:
