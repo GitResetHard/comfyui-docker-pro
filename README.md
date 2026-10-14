@@ -2,6 +2,8 @@
 
 Unofficial NVIDIA container for [ComfyUI](https://github.com/Comfy-Org/ComfyUI), including the built-in Manager. Supports standard Docker Compose on Linux with NVIDIA Container Toolkit.
 
+For ZimaOS GUI installation and configuration, see **[ZimaOS guide](ZIMAOS.md)**. The instructions below are for standard Docker Compose only.
+
 ## Installation
 
 Clone the repository and copy the configuration:
@@ -18,17 +20,13 @@ The web interface listens at `http://127.0.0.1:8188` by default. Set `COMFY_BIND
 ## Deployment options
 
 - [docker-compose.yml](docker-compose.yml) — standard Docker Compose, local image build and persistent named volume.
-- [docker-compose.zimaos.yml](docker-compose.zimaos.yml) — ZimaOS custom-app manifest, image-based deployment, NVIDIA GPU and persistent data under `/DATA/AppData/comfyui`.
+- [ZIMAOS.md](ZIMAOS.md) — separate GUI-only ZimaOS installation and configuration guide, using [docker-compose.zimaos.yml](docker-compose.zimaos.yml).
 
 ## Images and releases
 
 Versioned NVIDIA images are published to [GitHub Packages](https://github.com/users/GitResetHard/packages), with release notes under [GitHub Releases](https://github.com/GitResetHard/comfyui-docker-pro/releases).
 
 Releases follow [Conventional Commits](https://www.conventionalcommits.org/): `fix:` makes a patch release, `feat:` makes a minor release, and a breaking change makes a major release according to the pre-1.0 versioning policy. Release Please opens an automated release pull request; merging it creates the GitHub release and triggers the matching Docker image build. Documentation-only commits do not publish new images.
-
-## Optional legacy Manager UI
-
-The built-in ComfyUI Manager is enabled by default. To additionally enable its legacy web interface, set `COMFY_EXTRA_ARGS=--enable-manager-legacy-ui` in `.env` (standard Docker Compose) or set the same variable in your ZimaOS app environment. Leave it empty to use the default Manager UI. No custom startup command or dependency restoration is required for this option.
 
 ## Persistent data
 
@@ -49,7 +47,7 @@ The final check should return `True` with working NVIDIA passthrough. Back up yo
 
 ## Environment
 
-See [.env.example](.env.example) for image/build ref, host binding, port, timezone, RAM and shared-memory limits, additional flags and log rotation. The ZimaOS manifest has independent inline settings.
+See [.env.example](.env.example) for image/build ref, host binding, port, timezone, RAM and shared-memory limits, additional flags and log rotation. ZimaOS uses its own YAML settings; see [ZIMAOS.md](ZIMAOS.md).
 
 ## Security and compatibility
 
