@@ -24,15 +24,6 @@ services:
     pids_limit: ${COMFY_PIDS_LIMIT:-1024}
     mem_limit: ${COMFY_MEM_LIMIT:-12g}
     mem_reservation: ${COMFY_MEM_RESERVATION:-4g}
-    cap_drop:
-      - ALL
-    cap_add:
-      - CHOWN
-      - DAC_OVERRIDE
-      - SETUID
-      - SETGID
-    security_opt:
-      - no-new-privileges:true
     logging:
       driver: json-file
       options:
