@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/GitResetHard/comfyui-docker-pro/compare/v1.0.0...v1.0.1) (2026-10-14)
+
+
+### Bug Fixes
+
+* **zimaos:** remove conflicting memory reservation from GPU compose ([3fb4e90](https://github.com/GitResetHard/comfyui-docker-pro/commit/3fb4e90833e46632dc4dc1d6691a42fb493e33c8))
+* **zimaos:** replace unsupported gpus field with NVIDIA device reservation ([0682fc6](https://github.com/GitResetHard/comfyui-docker-pro/commit/0682fc6522612e2f3629aaeb60bc0db2a45e93db))
+
 ## 1.0.0 (2026-10-14)
 
 
