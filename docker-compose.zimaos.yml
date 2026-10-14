@@ -2,7 +2,7 @@ name: comfyui
 
 services:
   comfyui:
-    image: ghcr.io/gitresethard/comfyui-docker-pro:v0.1.0
+    image: ghcr.io/gitresethard/comfyui-docker-pro:v1.0.2
     container_name: comfyui
     hostname: comfyui
     restart: unless-stopped
