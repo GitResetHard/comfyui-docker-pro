@@ -42,17 +42,24 @@ jobs:
           git checkout -B "$branch"
           python3 - <<'PY'
           import os
+          import re
           from pathlib import Path
           tag = os.environ["TAG"]
           current = os.environ["CURRENT"]
-          for name in ("Dockerfile", "docker-compose.yml", ".env.example", "README.md"):
-              path = Path(name)
-              text = path.read_text()
-              if current not in text:
-                  raise SystemExit(f"Expected {current} in {name}")
-              path.write_text(text.replace(current, tag))
+          # Image tags and documentation use this project's independent release version.
+          # Only Dockerfile owns the upstream ComfyUI source pin.
+          path = Path("Dockerfile")
+          text, count = re.subn(
+              rf"^ARG COMFY_REF={re.escape(current)}$",
+              f"ARG COMFY_REF={tag}",
+              path.read_text(),
+              flags=re.MULTILINE,
+          )
+          if count != 1:
+              raise SystemExit(f"Expected exactly one ARG COMFY_REF={current} in Dockerfile")
+          path.write_text(text)
           PY
-          git add Dockerfile docker-compose.yml .env.example README.md
+          git add Dockerfile
           git commit -m "chore: update ComfyUI to $TAG"
           git push --force-with-lease origin "$branch"
           if ! gh pr list --head "$branch" --state open --json number --jq 'length' | grep -qx '1'; then
