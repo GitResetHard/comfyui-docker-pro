@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.1](https://github.com/GitResetHard/comfyui-docker-pro/compare/v1.1.0...v1.1.1) (2026-10-19)
+
+
+### Bug Fixes
+
+* update only the upstream ComfyUI Dockerfile pin ([#6](https://github.com/GitResetHard/comfyui-docker-pro/issues/6)) ([03f7401](https://github.com/GitResetHard/comfyui-docker-pro/commit/03f7401ff080046106a4d72f9c0b0467e76e13ad))
+
 ## [1.1.0](https://github.com/GitResetHard/comfyui-docker-pro/compare/v1.0.3...v1.1.0) (2026-10-14)
 
 
