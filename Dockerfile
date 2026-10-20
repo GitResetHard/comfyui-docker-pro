@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1.7
 ARG PYTORCH_IMAGE=pytorch/pytorch:2.8.0-cuda12.8-cudnn9-runtime
 FROM ${PYTORCH_IMAGE}
-ARG COMFY_REF=v0.40.0
+ARG COMFY_REF=v0.42.1
 ENV DEBIAN_FRONTEND=noninteractive PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 HF_HOME=/data/cache/huggingface XDG_CACHE_HOME=/data/cache/xdg TORCH_HOME=/data/cache/torch MPLCONFIGDIR=/data/cache/matplotlib
 RUN apt-get update && apt-get install -y --no-install-recommends git git-lfs ffmpeg libgl1 libglib2.0-0 libgomp1 ca-certificates tini curl gosu && rm -rf /var/lib/apt/lists/*
 WORKDIR /opt/ComfyUI
